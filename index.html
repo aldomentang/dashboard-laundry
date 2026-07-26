@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Dashboard Progress Laundry</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#F7F4EE;
+    --ink:#2C2B26;
+    --ink-soft:#716E63;
+    --ink-faint:#A9A493;
+    --card:#FFFFFF;
+    --line:#E7E2D5;
+    --sage:#4E7A66;
+    --sage-light:#E5EEE8;
+    --sage-dark:#335244;
+    --coral:#E1734A;
+    --coral-light:#FBEAE1;
+    --coral-dark:#9C4423;
+    --amber:#D79A2C;
+    --amber-light:#FBF1DC;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--cream);
+    font-family:'Inter',sans-serif;
+    color:var(--ink);
+    padding:32px 16px 64px;
+  }
+  .wrap{max-width:760px; margin:0 auto;}
+
+  /* header */
+  .brand{display:flex; align-items:center; gap:12px; margin-bottom:28px;}
+  .brand-mark{
+    width:40px;height:40px;border-radius:50%;
+    background:var(--sage); color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Fraunces',serif; font-weight:600; font-size:18px;
+    flex-shrink:0;
+  }
+  .brand-name{font-family:'Fraunces',serif; font-size:22px; font-weight:600; letter-spacing:-0.01em;}
+  .brand-sub{font-size:13px; color:var(--ink-soft); margin-top:1px;}
+
+  /* search */
+  .search-card{
+    background:var(--card); border:1px solid var(--line); border-radius:16px;
+    padding:18px 20px; margin-bottom:24px;
+    display:flex; gap:10px; align-items:center;
+  }
+  .search-card input{
+    flex:1; border:1px solid var(--line); border-radius:10px;
+    padding:11px 14px; font-size:14px; font-family:'JetBrains Mono',monospace;
+    background:#FCFBF8; color:var(--ink); outline:none;
+  }
+  .search-card input:focus{border-color:var(--sage);}
+  .search-card button{
+    border:none; background:var(--sage); color:#fff;
+    padding:11px 20px; border-radius:10px; font-size:14px; font-weight:500;
+    font-family:'Inter',sans-serif; cursor:pointer;
+  }
+  .search-card button:active{transform:scale(0.98);}
+  .hint{font-size:12px; color:var(--ink-faint); margin:8px 2px 0;}
+
+  .error-box{
+    background:var(--coral-light); color:var(--coral-dark);
+    border-radius:12px; padding:14px 16px; font-size:13.5px;
+    margin-bottom:20px; display:none;
+  }
+
+  /* main card */
+  .panel{display:none;}
+  .panel.show{display:block;}
+
+  .top-row{display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:18px; gap:16px;}
+  .top-row .label{font-size:12.5px; color:var(--ink-soft); margin:0 0 4px;}
+  .order-id{font-family:'JetBrains Mono',monospace; font-size:17px; font-weight:500; margin:0;}
+  .eta{font-size:14.5px; font-weight:500; margin:0; text-align:right;}
+
+  .card{
+    background:var(--card); border:1px solid var(--line); border-radius:16px;
+    padding:18px 20px; margin-bottom:18px;
+  }
+  .row{display:flex; justify-content:space-between; align-items:center; padding:8px 0;}
+  .row + .row{border-top:1px solid var(--line);}
+  .row .k{font-size:14px; color:var(--ink-soft);}
+  .row .v{font-size:14px; font-weight:500;}
+  .pill{
+    font-size:12.5px; font-weight:500; padding:3px 11px; border-radius:100px;
+  }
+  .pill.paid{background:var(--sage-light); color:var(--sage-dark);}
+  .pill.unpaid{background:var(--amber-light); color:#8A5F0F;}
+
+  /* stepper */
+  .stepper-title{font-size:14px; font-weight:500; color:var(--ink-soft); margin:0 0 14px;}
+  .stepper{display:flex; align-items:flex-start;}
+  .step{flex:1; position:relative; display:flex; flex-direction:column; align-items:center;}
+  .step .connector{
+    position:absolute; top:17px; left:50%; width:100%; height:2px; background:var(--line); z-index:0;
+  }
+  .step:last-child .connector{display:none;}
+  .step.done .connector{background:var(--sage);}
+  .dot{
+    width:34px; height:34px; border-radius:50%; z-index:1;
+    display:flex; align-items:center; justify-content:center;
+    background:var(--card); border:1.5px solid var(--line);
+    font-size:16px;
+  }
+  .step.done .dot{background:var(--sage-light); border-color:var(--sage); color:var(--sage-dark);}
+  .step.current .dot{background:var(--coral-light); border-color:var(--coral); color:var(--coral-dark);}
+  .step.pending .dot{color:var(--ink-faint);}
+  .step-label{font-size:11.5px; margin-top:8px; text-align:center; color:var(--ink-soft);}
+  .step.current .step-label{color:var(--ink); font-weight:500;}
+  .step-time{font-size:10.5px; color:var(--ink-faint); margin-top:2px;}
+
+  /* note */
+  .note{
+    background:var(--amber-light); border-radius:12px; padding:12px 14px;
+    font-size:13.5px; color:#8A5F0F; display:flex; gap:10px; align-items:flex-start;
+    margin-bottom:18px;
+  }
+  .note .dotmark{flex-shrink:0; margin-top:2px;}
+
+  /* footer actions */
+  .footer{display:flex; gap:10px;}
+  .btn{
+    flex:1; text-align:center; padding:12px; border-radius:10px; font-size:14px; font-weight:500;
+    text-decoration:none; cursor:pointer; border:1px solid var(--line); background:var(--card); color:var(--ink);
+  }
+  .btn.primary{background:var(--sage); color:#fff; border:none;}
+
+  @media (max-width:480px){
+    .step-label{font-size:10px;}
+    .dot{width:28px; height:28px; font-size:13px;}
+    .step .connector{top:14px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="brand">
+    <div class="brand-mark">B</div>
+    <div>
+      <div class="brand-name">Bersih Laundry</div>
+      <div class="brand-sub">Lacak progress cucian Anda</div>
+    </div>
+  </div>
+
+  <div class="search-card">
+    <input id="orderInput" placeholder="Masukkan nomor order, cth. LND-014" />
+    <button onclick="lookup()">Cari</button>
+  </div>
+  <div class="hint" id="statusHint">Memuat data dari Google Sheets...</div>
+  <div class="error-box" id="errorBox">Nomor order tidak ditemukan. Periksa kembali nomor order Anda.</div>
+
+  <div class="panel" id="panel"></div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script>
+// GANTI URL DI BAWAH INI dengan link "Publish to web" (CSV) dari Google Sheet Anda
+const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQgAL4QiVDo_3wBAmH9IvK8QgXn1iNhysHYxPkZxo0LKdj6V7tN9kt8HLjC_8s08vmgzuZnKt7GzcOL/pub?gid=1595587156&single=true&output=csv";
+
+let ORDERS = {};
+
+function toBool(v){
+  return String(v).trim().toUpperCase() === "TRUE";
+}
+
+function buildOrdersFromRows(rows){
+  const stepLabels = ["Diterima","Dicuci","Pengeringan","Setrika","Siap diambil"];
+  const result = {};
+  rows.forEach(r => {
+    if(!r.OrderID) return;
+    const id = String(r.OrderID).trim().toUpperCase();
+    const times = [r.T1, r.T2, r.T3, r.T4, r.T5];
+    result[id] = {
+      customer: r.Customer || "",
+      service: r.Service || "",
+      eta: r.ETA || "",
+      paid: toBool(r.Paid),
+      step: parseInt(r.Step, 10) || 0,
+      note: r.Note && r.Note.trim() ? r.Note.trim() : null,
+      timeline: stepLabels.map((label, i) => ({ label, time: times[i] || "" }))
+    };
+  });
+  return result;
+}
+
+function loadOrders(){
+  const statusHint = document.getElementById("statusHint");
+  Papa.parse(SHEET_CSV_URL, {
+    download: true,
+    header: true,
+    complete: (results) => {
+      ORDERS = buildOrdersFromRows(results.data);
+      statusHint.textContent = `Data terhubung • ${Object.keys(ORDERS).length} order ditemukan`;
+    },
+    error: (err) => {
+      statusHint.textContent = "Gagal memuat data. Periksa URL Google Sheet Anda.";
+      console.error(err);
+    }
+  });
+}
+loadOrders();
+
+function stepIcon(state){
+  if(state === "done") return "✓";
+  if(state === "current") return "•";
+  return "";
+}
+
+function render(orderId, order){
+  const panel = document.getElementById("panel");
+
+  let steps = "";
+  order.timeline.forEach((t, i) => {
+    let state = i < order.step ? "done" : (i === order.step ? "current" : "pending");
+    steps += `
+      <div class="step ${state}">
+        <div class="connector"></div>
+        <div class="dot">${stepIcon(state)}</div>
+        <div class="step-label">${t.label}</div>
+        <div class="step-time">${t.time || ""}</div>
+      </div>`;
+  });
+
+  const noteHtml = order.note ? `
+    <div class="note">
+      <span class="dotmark">●</span>
+      <span>Catatan: ${order.note}</span>
+    </div>` : "";
+
+  panel.innerHTML = `
+    <div class="top-row">
+      <div>
+        <p class="label">Nomor order</p>
+        <p class="order-id">#${orderId}</p>
+      </div>
+      <div>
+        <p class="label">Estimasi selesai</p>
+        <p class="eta">${order.eta}</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="row"><span class="k">Pelanggan</span><span class="v">${order.customer}</span></div>
+      <div class="row"><span class="k">Layanan</span><span class="v">${order.service}</span></div>
+      <div class="row"><span class="k">Pembayaran</span><span class="pill ${order.paid ? 'paid' : 'unpaid'}">${order.paid ? 'Lunas' : 'Belum lunas'}</span></div>
+    </div>
+
+    <div class="card">
+      <p class="stepper-title">Progress cucian</p>
+      <div class="stepper">${steps}</div>
+    </div>
+
+    ${noteHtml}
+
+    <div class="footer">
+      <a class="btn" href="https://wa.me/6281234567890" target="_blank" rel="noopener">Hubungi CS</a>
+      <div class="btn primary" onclick="location.reload()">Cari order lain</div>
+    </div>
+  `;
+  panel.classList.add("show");
+}
+
+function lookup(){
+  const raw = document.getElementById("orderInput").value.trim().toUpperCase();
+  const errorBox = document.getElementById("errorBox");
+  const panel = document.getElementById("panel");
+  const order = ORDERS[raw];
+  if(order){
+    errorBox.style.display = "none";
+    render(raw, order);
+  } else {
+    errorBox.style.display = "block";
+    panel.classList.remove("show");
+  }
+}
+
+document.getElementById("orderInput").addEventListener("keydown", (e) => {
+  if(e.key === "Enter") lookup();
+});
+</script>
+</body>
+</html>
