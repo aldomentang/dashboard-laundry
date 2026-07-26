@@ -182,7 +182,7 @@ function buildOrdersFromRows(rows){
     result[id] = {
       customer: r.Customer || "",
       service: r.Service || "",
-      eta: r.EstimasiSelesai || "",
+      eta: r.ETA || "",
       paid: toBool(r.Paid),
       step: parseInt(r.Step, 10) || 0,
       note: r.Note && r.Note.trim() ? r.Note.trim() : null,
