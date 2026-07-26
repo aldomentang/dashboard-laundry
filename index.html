@@ -173,7 +173,7 @@ function toBool(v){
 }
 
 function buildOrdersFromRows(rows){
-  const stepLabels = ["Diterima","Dicuci","Pengeringan","Setrika","Siap diambil"];
+  const stepLabels = ["Diterima","Dicuci","Pengeringan","Setrika/Dilipat","Siap diambil"];
   const result = {};
   rows.forEach(r => {
     if(!r.OrderID) return;
