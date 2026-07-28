@@ -154,60 +154,42 @@
     <input id="orderInput" placeholder="Masukkan nomor order, cth. LND-014" />
     <button onclick="lookup()">Cari</button>
   </div>
-  <div class="hint" id="statusHint">Memuat data dari Google Sheets...</div>
+  <div class="hint" id="statusHint">Masukkan nomor order untuk mulai melacak.</div>
   <div class="error-box" id="errorBox">Nomor order tidak ditemukan. Periksa kembali nomor order Anda.</div>
 
   <div class="panel" id="panel"></div>
 
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script>
-// GANTI URL DI BAWAH INI dengan link "Publish to web" (CSV) dari Google Sheet Anda
-const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQgAL4QiVDo_3wBAmH9IvK8QgXn1iNhysHYxPkZxo0LKdj6V7tN9kt8HLjC_8s08vmgzuZnKt7GzcOL/pub?gid=1595587156&single=true&output=csv";
-
-let ORDERS = {};
+// GANTI URL DI BAWAH INI dengan URL deployment Apps Script Anda (diakhiri /exec)
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyHi1RvO8ILtF3Nw3_dNt7SLoKocR1yn3n7wCM8c6tlciRyB3kEsVb_wAZoqtV6xMkb/exec";
 
 function toBool(v){
   return String(v).trim().toUpperCase() === "TRUE";
 }
 
-function buildOrdersFromRows(rows){
-  const stepLabels = ["Diterima","Dicuci","Pengeringan","Setrika/Dilipat","Siap diambil"];
-  const result = {};
-  rows.forEach(r => {
-    if(!r.OrderID) return;
-    const id = String(r.OrderID).trim().toUpperCase();
-    const times = [r.T1, r.T2, r.T3, r.T4, r.T5];
-    result[id] = {
-      customer: r.Customer || "",
-      service: r.Service || "",
-      eta: r.ETA || "",
-      paid: toBool(r.Paid),
-      step: parseInt(r.Step, 10) || 0,
-      note: r.Note && r.Note.trim() ? r.Note.trim() : null,
-      timeline: stepLabels.map((label, i) => ({ label, time: times[i] || "" }))
-    };
-  });
-  return result;
+function buildOrderFromRow(r){
+  const stepLabels = ["Diterima","Dicuci","Pengeringan","Setrika","Siap diambil"];
+  const times = [r.T1, r.T2, r.T3, r.T4, r.T5];
+  return {
+    customer: r.Customer || "",
+    service: r.Service || "",
+    eta: r.EstimasiSelesai || "",
+    paid: toBool(r.Paid),
+    step: parseInt(r.Step, 10) || 0,
+    note: r.Note && String(r.Note).trim() ? String(r.Note).trim() : null,
+    timeline: stepLabels.map((label, i) => ({ label, time: times[i] || "" }))
+  };
 }
 
-function loadOrders(){
-  const statusHint = document.getElementById("statusHint");
-  Papa.parse(SHEET_CSV_URL, {
-    download: true,
-    header: true,
-    complete: (results) => {
-      ORDERS = buildOrdersFromRows(results.data);
-      statusHint.textContent = `Data terhubung • ${Object.keys(ORDERS).length} order ditemukan`;
-    },
-    error: (err) => {
-      statusHint.textContent = "Gagal memuat data. Periksa URL Google Sheet Anda.";
-      console.error(err);
-    }
-  });
+async function fetchOrder(orderId){
+  const url = `${APPS_SCRIPT_URL}?orderId=${encodeURIComponent(orderId)}`;
+  const res = await fetch(url);
+  const data = await res.json();
+  return data;
 }
-loadOrders();
+
 
 function stepIcon(state){
   if(state === "done") return "✓";
@@ -269,23 +251,46 @@ function render(orderId, order){
   panel.classList.add("show");
 }
 
-function lookup(){
+async function lookup(){
   const raw = document.getElementById("orderInput").value.trim().toUpperCase();
   const errorBox = document.getElementById("errorBox");
   const panel = document.getElementById("panel");
-  const order = ORDERS[raw];
-  if(order){
-    errorBox.style.display = "none";
+  const statusHint = document.getElementById("statusHint");
+
+  if(!raw){
+    return;
+  }
+
+  errorBox.style.display = "none";
+  panel.classList.remove("show");
+  statusHint.textContent = "Mencari data...";
+
+  try {
+    const data = await fetchOrder(raw);
+
+    if(data.error){
+      errorBox.textContent = data.error;
+      errorBox.style.display = "block";
+      statusHint.textContent = "Masukkan nomor order untuk mulai melacak.";
+      return;
+    }
+
+    const order = buildOrderFromRow(data);
+    statusHint.textContent = "Data terhubung.";
     render(raw, order);
-  } else {
+
+  } catch (err) {
+    console.error(err);
+    errorBox.textContent = "Gagal mengambil data. Periksa koneksi atau URL Apps Script Anda.";
     errorBox.style.display = "block";
-    panel.classList.remove("show");
+    statusHint.textContent = "Terjadi kesalahan.";
   }
 }
 
 document.getElementById("orderInput").addEventListener("keydown", (e) => {
   if(e.key === "Enter") lookup();
 });
+
 </script>
 </body>
 </html>
