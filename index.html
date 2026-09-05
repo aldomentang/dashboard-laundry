@@ -149,6 +149,7 @@
     .step-label{font-size:10px;}
     .dot{width:28px; height:28px; font-size:13px;}
     .step .connector{top:14px;}
+    .step-time{font-size:9.5px; line-height:1.3;}
   }
 </style>
 </head>
@@ -221,7 +222,7 @@ function render(orderId, order){
         <div class="connector"></div>
         <div class="dot">${stepIcon(state)}</div>
         <div class="step-label">${t.label}</div>
-        <div class="step-time">${t.time || ""}</div>
+        <div class="step-time">${(t.time || "").replace(' ', '<br>')}</div>
       </div>`;
   });
 
