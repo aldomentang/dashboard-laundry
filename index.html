@@ -95,9 +95,22 @@
   .pill.unpaid{background:var(--amber-light); color:#8A5F0F;}
 
   /* stepper */
-  .stepper-title{font-size:14px; font-weight:500; color:var(--ink-soft); margin:0 0 14px;}
-  .stepper{display:flex; align-items:flex-start;}
-  .step{flex:1; position:relative; display:flex; flex-direction:column; align-items:center;}
+  .stepper-title{font-size:14px; font-weight:500; color:var(--ink-soft); margin:0 0 14px;} 
+  .stepper{
+    display:flex;
+    align-items:flex-start;
+    overflow-x:auto;
+    padding-bottom:4px;
+    -webkit-overflow-scrolling:touch;
+    }
+  .step{
+    flex:0 0 76px;
+    min-width:76px;
+    position:relative;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    }
   .step .connector{
     position:absolute; top:17px; left:50%; width:100%; height:2px; background:var(--line); z-index:0;
   }
