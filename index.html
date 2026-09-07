@@ -205,29 +205,33 @@ async function fetchOrder(orderId){
 }
 
 
-function stepIcon(state, isLastStep){
+function stepIcon(state){
   if(state === "done") return "✓";
-  if(state === "current") return isLastStep ? "📦" : "•";
+  if(state === "current") return "•";
   return "";
 }
-
   
 function render(orderId, order){
   const panel = document.getElementById("panel");
 
   let steps = "";
   order.timeline.forEach((t, i) => {
-  let state = i < order.step ? "done" : (i === order.step ? "current" : "pending");
-  const isLastStep = i === order.timeline.length - 1;
-  steps += `
-    <div class="step ${state}">
-      <div class="connector"></div>
-      <div class="dot">${stepIcon(state, isLastStep)}</div>
-      <div class="step-label">${t.label}</div>
-      <div class="step-time">${(t.time || "").replace(' ', '<br>')}</div>
-    </div>`;
+    const isLastStep = i === order.timeline.length - 1;
+    let state;
+    if (isLastStep && i === order.step) {
+      state = "done"; // tahap terakhir tercapai = tuntas, bukan "sedang berlangsung"
+    } else {
+      state = i < order.step ? "done" : (i === order.step ? "current" : "pending");
+    }
+    steps += `
+      <div class="step ${state}">
+        <div class="connector"></div>
+        <div class="dot">${stepIcon(state)}</div>
+        <div class="step-label">${t.label}</div>
+        <div class="step-time">${(t.time || "").replace(' ', '<br>')}</div>
+      </div>`;
   });
-
+  
   const noteHtml = order.note ? `
     <div class="note">
       <span class="dotmark">●</span>
